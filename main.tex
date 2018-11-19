@@ -1,5 +1,317 @@
-\documentclass{article}
+\documentclass[oneside]{book}
+
 \usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{xspace}
+\usepackage{multirow}
+\usepackage{alltt}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}%da non usare nella versione camera-ready
+\usepackage{multirow}
+\usepackage{amsmath}% ci serve per la H piccola in datalog^E,H
+\usepackage{arydshln}
+\usepackage{booktabs}
+\DeclareMathAlphabet{\mathbb}{U}{fplmbb}{bb}{it}
+
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\newcommand{\stkout}[1]{\ifmmode\text{\sout{\ensuremath{#1}}}\else\sout{#1}\fi}
+
+\usepackage[]{hyperref}
+
+
+%\makeatletter\@addtoreset{chapter}{part}\makeatother%
+
+\usepackage[top=1in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
+
+% \makeatletter
+% \@addtoreset{chapter}{part}
+% \makeatother
+
 \begin{document}
-(Type your content here.)
+
+\title{\bf Enhancing the DLV system for\\large-scale ontology reasoning \\ \ \\
+\Large \em Preliminary Report
+\\ \ \\ }
+\author{xxxx}
+
+%\date{December 2004}
+\maketitle
+
+\pagenumbering{Roman}
+
+\chapter*{Summary}
+%\addcontentsline{toc}{chapter}{Abstract}
+The summary goes here...
+
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{\numberline{}Introduction}
+\markright{Introduction}
+\pagenumbering{arabic}
+
+%\renewcommand{\abstractname}{Executive Summary}
+% \begin{abstract}
+% \addcontentsline{toc}{chapter}{Abstract}
+% The abstract goes here...
+% ...
+% \end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\part*{Work Package 1:\\Data Loading Procedure Extensions}
+\addcontentsline{toc}{part}{WP1: Data Loading Procedure Extensions}
+
+\chapter{Scenario and problem description}
+
+DLV natively supports the ASP formalism that requires data to be represented as a set of relational facts. One of the goals of this project is to extend the system in order to deal with OWL TBoxes in RDF/XML format, RDF ABoxes in Turtle format and Conjunctive Queries in SPARQL. In particular, a “rewriting-based” approach for handling OWL ontologies and SPARQL queries will be designed and developed within WP2; whereas, an extension of the system for loading Turtle ABoxes has been developed within WP1. 
+BLA BLA BLA…
+
+\section{Team}
+WP1 has been fully developed by DLVSystem. In particular, what follows is the list of the involved researchers: Stefano Germano (PostDoc), Pierfrancesco Veltri (PostDoc), Jessica Zangari (PostDoc).
+
+\section{Activity title}
+TODO
+\section{Activity title}
+TODO
+\chapter{Results}
+\chapter{Open research issues}
+\chapter{Bibliography}
+\chapter{Appendix}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{chapter}{0}
+
+\part*{Work Package 2:\\Enhancing the Query Rewriting Techniques}
+\addcontentsline{toc}{part}{WP2: Enhancing the Query Rewriting Techniques}
+
+\chapter{Scenario and problem description}
+
+We aim at extending DLV for answering Conjunctive Queries (CQs) over Horn-SHIQ ontologies by following a Datalog-rewriting approach. To this aim, nice algorithms have been introduced in the literature in the last few years. One of the goals of WP2 is to design and develop an optimized algorithm for (Datalog-)rewriting CQs over Horn-SHIQ ontologies, after studying state-of-the-art approaches proposed in the literature. Moreover, WP2 aims at improving the existing DLV rewriting technique called Magic Sets for dealing with Datalog-rewritings of OWL knowledge bases. 
+BLA BLA BLA…
+
+\section{Team}
+WP2 has been jointly performed by DLVSystem, SRUK and DeMaCS@UNICAL. In particular, what follows is the list of the involved researchers: Mario Alviano (Professor), Cristina Civili (PostDoc), Marco Manna (Professor), Pierfrancesco Veltri (PostDoc).
+
+\section{Activity title}
+TODO
+\section{Activity title}
+TODO
+\section{Design Magic Sets enhanced for Datalog-rewriting of OWL ontologies. (Datalog to Datalog) - Activity 2.3}
+Magic Sets are an optimization technique for addressing query answering in relational databases and logic-based systems. The technique is translational, from Datalog to Datalog in the context of this project, and therefore implementable as a module (almost) independent from other modules of DLV. The logic program in input is rewritten so that the subsequent bottom-up evaluation only materializes ground atoms that are relevant to answer the query in input. To this aim, new predicates are introduced in the rewritten program. Below is an example involving a recursive definition and asking for the descendants of mario:
+\begin{verbatim}
+  ancestor(X,Y) :- parent(X,Y).
+  ancestor(X,Y) :- parent(X,Z), ancestor(Z,Y).
+  ancestor(mario,X)?
+\end{verbatim}
+
+The Magic Sets rewriting starts with the query seed {\tt m\#ancestor\#bf(mario)}, modifies the rules defining the intentional predicate ancestor, and introduces magic rules for every occurrence of intentional predicates in the modified rules. The rewritten program is the following:
+\begin{verbatim}
+  m#ancestor#bf(mario).
+  ancestor(X,Y) :- m#ancestor#bf(X), parent(X,Y).
+  ancestor(X,Y) :- m#ancestor#bf(X),parent(X,Z),ancestor(Z,Y).
+  m#ancestor#bf(Z) :- m#ancestor#bf(X), parent(X,Z).
+\end{verbatim}
+
+The rewritten program above is optimized for answering the specific query as its bottom-up evaluation only materializes descendants of mario, rather than the full ancestor relation.
+
+There are cases in which several predicates for each predicate in the original program are introduced in the rewritten program. Below is an example, where all predicates are intentional, bindings are passed from left to right, and only rules defining the query predicate q are shown.
+\begin{verbatim}
+  q(X) :- r(a,X), s(X,Y), q(Y).
+\end{verbatim}
+
+The Magic Sets rewriting starts by introducing the magic seed {\tt m\#q\#f}. For each new predicate introduced by the rewriting, modified versions of the rules in input are added:
+\begin{verbatim}
+  q(X) :- m#q#f, r(a,X), s(X,Y), q(X).
+\end{verbatim}
+For each occurrence of an intentional predicate in a modified rule, a magic rule is added, possibly generating new predicates:
+\begin{verbatim}
+  m#r#bf(a) :- m#q#f.
+  m#s#bf(X) :- m#q#f, r(a,X).
+  m#q#b(Y) :- m#q#f, r(a,X), s(X,Y).
+\end{verbatim}
+The process is repeated, and the following rules are added:
+\begin{verbatim}
+  q(X) :- m#q#b(X), r(a,X), s(X,Y), q(X).
+  m#r#bb(a,X) :- m#q#b(X).
+  m#s#bf(X) :- m#q#b(X), r(a,X).
+  m#q#b(Y) :- m#q#b(X), r(a,X), s(X,Y).
+\end{verbatim}
+At this point the rewriting reaches a fixpoint and terminates. Hence, the rewritten program contains the following rules (recall that the example is focused on the rules defining q, while the rules defining other intentional predicates have been omitted):
+\begin{verbatim}
+  m#q#f.
+  q(X) :- m#q#f, r(a,X), s(X,Y), q(X).
+  m#r#bf(a) :- m#q#f.
+  m#s#bf(X) :- m#q#f, r(a,X).
+  m#q#b(Y) :- m#q#f, r(a,X), s(X,Y).
+  q(X) :- m#q#b(X), r(a,X), s(X,Y), q(X).
+  m#r#bb(a,X) :- m#q#b(X).
+  m#s#bf(X) :- m#q#b(X), r(a,X).
+  m#q#b(Y) :- m#q#b(X), r(a,X), s(X,Y).
+\end{verbatim}
+Note that similar rules are introduced for predicates originating from the same source. Hence, a drawback of Magic Sets is the possible introduction of redundant rules and predicates.
+
+Another possible source of inefficiency is the presence or the introduction of subsumed rules, that is, rules whose ground instances are included or less general than those associated with another rule in the program. Below is an example.
+\begin{verbatim}
+  q(X) :- p(X).
+  q(X) :- p(X), t(X).
+  q(a) :- p(a).
+\end{verbatim}
+We can observe that the first rules subsumes the other rules: ground instances of the second rule are less general than those of the first rule; the only ground instance of the third rule is among the the ground instances of the first rule.
+
+\chapter{Results}
+[...]
+
+Concerning Activity 2.3, our goal is to further optimize the Magic Sets technique by introducing postprocessing modules that identify redundant rules and predicates. Specifically, redundant rules are identified by a module that checks for subsumption, that is, rules whose ground instances are included or less general than those associated with another rule in the program are removed; the number of pairs of rules to be checked is significantly reduced by means of hashing techniques. Below is the result of the application of such a module to the example given in Section 2.3. 
+\[
+\begin{array}{l}
+{\tt q(X) :- p(X).}\\
+\mathtt{\stkout{q(X) :- p(X), t(X).}}\\
+\mathtt{\stkout{ q(a) :- p(a).}}\\
+\end{array}
+\]
+
+
+Intuitively, given two rules $r_1$, $r_2$, subsumption $r_1 \sqsubseteq r_2$ is checked by means of a backtracking procedure that searches for a substitution of the variables of r1 such that the head of $r_1$ matches the head of $r_2$, and the body of $r_1$ is a subset of the body of $r_2$. If such a substitution is found, rule  $r_2$ is removed. Checking all pairs is too expensive, and therefore each rule is associated with an hash value, currently of size 64 bits, computed as follows:
+\begin{itemize}
+\item <OR of IDs of head predicates>, 8 bits;
+\item <OR of IDs of head constants>, 8 bits;
+\item <OR of IDs of predicates in positive body>, 16 bits;
+\item <OR of IDs of constants in positive body>, 16 bits;
+\item <OR of IDs of predicates in negative body>, 8 bits;
+\item <OR of IDs of constants in negative body>, 8 bits.
+\end{itemize}
+Subsumption $r_1 \sqsubseteq r_2$ is checked only if the following bit-a-bit equation is satisfied:
+$$hash(r_1) \ \& \ hash(r_2) == hash(r_1)$$
+In the example above, the third rule cannot subsume the other rules because of the constant a, and the second rule cannot subsume the other rules because of the predicate t; depending on the IDs associated with predicates and constants, the hashing technique can detect this fact and avoid the backtracking searches.
+
+The module that identifies redundant predicates, instead, takes into account the different bindings associated with predicates originating from the same source, and eliminates the rules associated with the more bounded predicates. In the example given in Section 2.3, predicate {\tt m\#q\#b} is more bounded than predicate {\tt m\#q\#f}, and therefore the rules associated with {\tt m\#q\#b} are removed. Similarly, rules associated with {\tt m\#r\#bb} and {\tt m\#s\#bf} are removed. Hence, the rewritten program, focused on the rules defining q, is the following:
+\[
+\begin{array}{l}
+	{\tt m\#q\#f.}\\
+	{\tt q(X) :- m\#q\#f, r(a,X), s(X,Y), q(X).}\\
+	{\tt m\#r\#bf(a) :- m\#q\#f.}\\
+	{\tt m\#s\#bf(X) :- m\#q\#f, r(a,X).}\\
+	\mathtt{\stkout{m\#q\#b(Y) :- m\#q\#f, r(a,X), s(X,Y).}}\\
+	\mathtt{\stkout{q(X) :- m\#q\#b(X), r(a,X), s(X,Y), q(X).}}\\
+	\mathtt{\stkout{m\#r\#bb(a,X) :- m\#q\#b(X).}}\\
+	\mathtt{\stkout{m\#s\#bf(X) :- m\#q\#b(X), r(a,X).}}\\
+	\mathtt{\stkout{m\#q\#b(Y) :- m\#q\#b(X), r(a,X), s(X,Y).}}\\
+\end{array}
+\]
+[...]
+
+
+
+\chapter{Open research issues}
+\chapter{Bibliography}
+\chapter{Appendix}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setcounter{chapter}{0}
+
+\part*{Work Package 3:\\Enhancing the SPARQL Query Evaluation/Execution Procedure}
+\addcontentsline{toc}{part}{WP3: Enhancing the SPARQL Query Evaluation/Execution}
+
+\chapter{Scenario and problem description}
+
+DLV has been designed as an in-memory system allowing only one-shot executions. In particular, when it is run on a specific input the system starts, loads input data, processes the requested query and stops as soon as the computation is completed. However, when multiple queries are evaluated over the same input data, the aforementioned behaviour could be rather expensive since the system needs to reload input data at each run and for each query. Within WP3, we aim at extending the system by providing a server-like behaviour that allows to keep the main process alive also after the computation is performed. In this way, DLV will be able to answer multiple queries over the same input knowledge base without loading input data more than once. More in detail, we plan to further equip the DLV server version with the following useful functionalities:
+\begin{itemize}
+\item Load ontology
+\item Load data (in form of logic fact or RDF triple)
+\item Add data (in form of logic fact or RDF triple)
+\item Remove data (in form of logic fact or RDF triple)
+\item Run query
+\item Reset ontology
+\item Reset data
+\item Compute statistics for query optimizations
+\end{itemize}
+
+A further goal of WP3 is to study and develop suitable optimization techniques intended to speed-up the execution of query-programs on given query-patterns (e.g., advanced indexing and ordering techniques). Finally, the last goal of this work package is to reduce the memory consumption of DLV in order to permit the handling of large scale knowledge bases characterized by ABoxes featuring billions of triples.
+BLA BLA BLA… 
+
+
+
+\section{Team}
+WP3 has been jointly developed by DLVSystem and DeMaCS@UNICAL. In particular, what follows is the list of the involved researchers: Francesco Calimeri (Professor), Roberta Costabile (PhDStudent), Alessio Fiorentino (PhDStudent), Davide Fuscà (PostDoc), Simona Perri (Professor), Kristian Reale (PostDoc), Francesco Ricca (Professor), Jessica Zangari (PostDoc).
+
+\section{Activity title}
+TODO
+\section{Activity title}
+TODO
+\section{Activity title}
+
+
+\chapter{Results}
+\chapter{Open research issues}
+\chapter{Bibliography}
+\chapter{Appendix}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setcounter{chapter}{0}
+
+\part*{Work Package 4:\\Test Case Design}
+\addcontentsline{toc}{part}{WP4: Test Case Design}
+
+\chapter{Scenario and problem description}
+
+Within activity A4.1, we aim at building a benchmark domain for evaluating powerful ontology reasoners relying on a non-materialization approach over a large dataset (more than 1 billion triples), where the latter is constantly subject to evolution (addition or deletion of triples from the ABox). The goal of this activity is to appropriately select and extend, if possible, an existing OWL benchmark for evaluating ontology reasoners against a large knowledge base with (near-)real time data. In particular, we must consider only benchmarks that enjoy the following main requirements:
+\begin{enumerate}
+\item the data generator is able to generate more than 1 billion triples;
+\item the ontology expressiveness is as close as possible to OWL 2 DL;
+\item the benchmark evaluates the tested systems over a dynamic dataset. 
+\end{enumerate}
+In order to simulate a dynamic evolution of the knowledge base, the tested systems will be required to load an initial large dataset (close to 1 billion triples) and answer a fixed set of queries. Next, at a frequency $f=\frac{1}{\Delta T}$ where $\Delta T$ is a given time period,  $x\%$ of the initial number of triples will be either deleted or generated and added to the ABox. After the systems are notified of the underlying knowledge base changes, they will have to answer again the fixed set of queries. Hence, the frequency $f$ and the rate $x\%$ (expressed as percentage of the initial number of triples) of the instance deletions/additions should be a tuneable parameter of our benchmark. 
+
+Currently, the research effort provide a number of well-established benchmarks, including LUBM, UOBM, BSBM and SPB. LUBM has been designed for comparing performance, soundness and completeness of OWL reasoning engines, against a static knowledge base. UOBM extends LUBM by adding axioms that make use of all OWL Lite and OWL DL constructs. BSBM aims at comparing the performances of systems that expose SPARQL endpoints, and can simulate different real-world scenarios. Similarly, the Semantic Publishing Benchmark (SPB) can simulate a real-world scenario where a number of aggregation agents provide the heavy query workload, while at the same time a steady stream of editorial agents execute a number of update operations.
+
+According to the requirements introduced above, none of the aforementioned benchmarks can be used without being extended for our purpose. Indeed, UOBM features an ontology going beyond Horn-SHIQ and it does not provide any official (dynamic) data generator. BSBM includes some queries requiring either aggregates or string functions and it does not provide any way to simulate data evolution. SPB does provide a reliable data generator and it can simulate a dynamic environment but its ontology is too easy to handle since its expressiveness falls into OWL 2 RL. Finally, LUBM does not simulate a dynamic environment. 
+
+However, this latter benchmark seems to be the most suitable choice since it could be easily extended for our purpose. Indeed, it provides an expressive ontology (falling into Horn-SHIQ and going beyond OWL 2 RL), a reliable data generator (which can be exploited to generate huge instances and to produce axioms to be added during the ABox evolution) and a set of 14 SPARQL queries.
+
+
+Hence, the main goal of activity A4.1 is to equip LUBM with a test driver that allows simulating a dynamic evolution of the initial dataset, by adding/deleting $x\%$  of the initial number of triples at a frequency $f=\frac{1}{\Delta T}$ (notice that both $\Delta T$ and $x$ should be tuneable parameters of our test driver). Moreover, we aim at devising more complex queries to fully exploit expressiveness of the LUBM ontology since 9 out of the original 14 queries can be now handled by any OWL 2 RL reasoner.
+BLA BLA BLA… 
+
+
+\section{Team}
+WP1 has been jointly developed by DLVSystem and SRUK. In particular, what follows is the list of the involved researchers: Pierfrancesco Veltri (PostDoc), Maud Lemercier (Software Engineer).
+
+\section{Activity title (A4.1)}
+TODO
+\section{Activity title (A4.2)}
+TODO
+\section{Activity title (A4.3)}
+
+
+\chapter{Results}
+\chapter{Open research issues}
+\chapter{Bibliography}
+\chapter{Appendix}
+
+
 \end{document}
