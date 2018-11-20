@@ -79,7 +79,7 @@ The summary goes here...
 
 \chapter{Scenario and problem description}
 
-DLV natively supports the ASP formalism that requires data to be represented as a set of relational facts. One of the goals of this project is to extend the system in order to deal with OWL TBoxes in RDF/XML format, RDF ABoxes in Turtle format and Conjunctive Queries in SPARQL. In particular, a “rewriting-based” approach for handling OWL ontologies and SPARQL queries will be designed and developed within WP2; whereas, an extension of the system for loading Turtle ABoxes has been developed within WP1. 
+DLV natively supports the ASP formalism that requires data to be represented as a set of relational facts. One of the goals of this project is to extend the system in order to deal with OWL TBoxes in RDF/XML format, RDF ABoxes in Turtle format and Conjunctive Queries in SPARQL. In particular, a ``rewriting-based'' approach for handling OWL ontologies and SPARQL queries will be designed and developed within WP2; whereas, an extension of the system for loading Turtle ABoxes has been developed within WP1. 
 BLA BLA BLA…
 
 \section{Team}
@@ -110,6 +110,39 @@ A prefixed name is a prefix label and a local part, separated by a colon ":". A 
 
 Literals are used to identify values such as strings, numbers, dates.\\
 Quoted Literals have a lexical form followed by a language tag, a datatype IRI, or neither.
+
+\section{State of the art of Turtle parsing in C++}
+
+\subsection{RDF Turtle management tools in C++}
+There are C++ tools which provide parsing, serialising and management of RDF triples in the Turtle format.
+
+The advantages of using an existing (and widely-used) tool are the stability, the correctness and the performance. The main disadvantage is the difficulty in customizing and adapting it to our needs (for example in terms of memory and time performance).
+
+The most well-known (and widely-used) is the \href{http://librdf.org/raptor}{Raptor RDF Syntax Library}.\\
+However, the latest version of this library is from 2014.\\
+Moreover, their ``Turtle Parser'' is outdated; \href{https://www.w3.org/TR/turtle}{the latest version of the standard is from 2014} but they support an older one, as reported in their documentation:
+\begin{quote}
+\textit{A parser for the \href{http://www.w3.org/TR/2013/CR-turtle-20130219/}{Turtle Terse RDF Triple Language} W3C Candidate Recommendation, 19 February 2013 based on earlier work \href{http://www.dajobe.org/2004/01/turtle/}{Turtle Terse RDF Triple Language} (2004)}
+\end{quote}
+
+There are other libraries (for instance those on \href{https://sourceforge.net/directory/language:cpp/os:windows/?q=turtle}{SourceForge} or on \href{https://github.com/topics/turtle?l=c\%2B\%2B}{GitHub}), but none of these are stable enough for our purposes.
+
+\textbf{Therefore, we decided to use a library and to perform the parsing manually.}\\
+Although this requires a more extensive set of test and benchmarks in order to assess the correctness and the performance of the Turtle parser.
+
+\subsection{Parsing libraries in C++}
+There is no ``standard'' (or ``official'') way of performing parsing in C++.\\
+However, in the latest 50 years many different alternatives have been proposed (see, for instance, \href{https://en.wikipedia.org/wiki/Comparison_of_parser_generators}{here}).
+Starting from Lex and Yacc, nowadays replaced by \href{https://github.com/westes/flex}{Flex} and \href{https://www.gnu.org/software/bison}{Bison} (or \href{https://invisible-island.net/byacc}{Berkeley Yacc}, which claims to be ``\textit{the \href{https://web.archive.org/web/20130327184430/http://foldoc.org/byacc}{best yacc variant} available}''). They are the most popular and used by the C++ community. \href{http://dinosaur.compilertools.net}{These tools} are also well supported and used by several popular projects. However, everyone agrees that they are extremely difficult to develop and to debug.\\
+Flex and Bison are also used in the current implementation of the I-DLV parser (for ASP programs).
+
+Other popular C++ scanners and parsers generators are \href{http://re2c.org}{re2c}, \href{https://www.boost.org/doc/libs/1_68_0/libs/spirit}{Boost Spirit}, \href{http://www.antlr.org}{ANTLR}.\\
+re2c seems to be (no actual reference) two or three times faster than flex, but it is less contributors and seems to be less used than flex.\\
+Boost Spirit is believed (there are no actual tests) to be slower than Bison, but in the latest years it was hugely improved.\\
+ANTLR has several advantages (for instance, plugins for the major programming IDEs and several standalone graphical IDEs that help the development of the grammar, or \href{https://github.com/antlr/grammars-v4/blob/master/turtle/TURTLE.g4}{an existing grammar for Turtle}), but it creates an LL parser (so it is easier to debug but slower) with a big memory footprint (users report this, there are no ``official'' comparisons).
+
+Since the combination \emph{Flex+Bison} is already used in I-DLV (and therefore we do not have compliance or licensing issues) and since their performance are quite good and (seem to) fit our purpose, \textbf{we decided to use the \emph{Flex} and \emph{Bison} libraries to build the \emph{Turtle parser}}.
+
 
 
 \section{Activity title}
