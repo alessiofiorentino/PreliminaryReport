@@ -859,46 +859,46 @@ a fresh variable and $r$ is a transitive role with $r \dlisa^*_\T s$.
 
 \
 
-\textbf{The algorithm in details}
+%\textbf{The algorithm in details}
 
-\begin{algorithm}[H]
-	\SetAlgoLined
-	\KwIn{CQ $q$ with only simple roles; TBox $\T$}
-	\KwOut{Rewritten queries of $q$ w.r.t. $\T$}
+% \begin{algorithm}[H]
+% 	\SetAlgoLined
+% 	\KwIn{CQ $q$ with only simple roles; TBox $\T$}
+% 	\KwOut{Rewritten queries of $q$ w.r.t. $\T$}
 	
-	$rew_\T^q \leftarrow \emptyset$\;
-	$rewrite(q,rew_\T^q)$\;
-	return $rew_\T^q$\;
-	\smallskip
-	\hrule
-	\smallskip
-	\textbf{Sub Procedure} $rewrite(q,rew)$\\
+% 	$rew_\T^q \leftarrow \emptyset$\;
+% 	$rewrite(q,rew_\T^q)$\;
+% 	return $rew_\T^q$\;
+% 	\smallskip
+% 	\hrule
+% 	\smallskip
+% 	\textbf{Sub Procedure} $rewrite(q,rew)$\\
 	
-	$rew_\T^q \leftarrow  rew \cup \{q\}$\;
-	\ForEach{non-distinguished variables $x$ of $q$}
-	{
-		\If{$r(x,x)\notin q$}{
-			Replace each $r(x,y)$ in $q$ by $r^-(y,x)$\;
-			$S \leftarrow \{r \mid r(y,x) \in q \}$ $P\leftarrow \{y \mid r(y,x) \in q \}$ $N\leftarrow \{A \mid A(x) \in q\}$\;
-			\ForEach{$M \dlisa \exists S'.N' \in \T$}{
-				\If{$S \subseteq S'$ and $N \subseteq N'$}{
-					Obtain $q'$ from $q$ by:\\
-					\Begin{
-						(1) Drop from $q$ each atom containing the variable x;\\
-						(2) Rename each $y \in P$ by $x$;\\
-						(3) Add $\{A(x) \mid A \in N\}$ to $q$;\\
-					}
-					\If{$q' \notin rew_\T^q$}{
-						$rewrite(q',rew_\T^q)$;
-					}
-				}
-			}
-		}
-	}
-	\caption{$Rewrite(q,\T)$}
-\end{algorithm}
+% 	$rew_\T^q \leftarrow  rew \cup \{q\}$\;
+% 	\ForEach{non-distinguished variables $x$ of $q$}
+% 	{
+% 		\If{$r(x,x)\notin q$}{
+% 			Replace each $r(x,y)$ in $q$ by $r^-(y,x)$\;
+% 			$S \leftarrow \{r \mid r(y,x) \in q \}$ $P\leftarrow \{y \mid r(y,x) \in q \}$ $N\leftarrow \{A \mid A(x) \in q\}$\;
+% 			\ForEach{$M \dlisa \exists S'.N' \in \T$}{
+% 				\If{$S \subseteq S'$ and $N \subseteq N'$}{
+% 					Obtain $q'$ from $q$ by:\\
+% 					\Begin{
+% 						(1) Drop from $q$ each atom containing the variable x;\\
+% 						(2) Rename each $y \in P$ by $x$;\\
+% 						(3) Add $\{A(x) \mid A \in N\}$ to $q$;\\
+% 					}
+% 					\If{$q' \notin rew_\T^q$}{
+% 						$rewrite(q',rew_\T^q)$;
+% 					}
+% 				}
+% 			}
+% 		}
+% 	}
+% 	\caption{$Rewrite(q,\T)$}
+% \end{algorithm}
 
-\hrule
+%\hrule
 \textbf{Example}
 
 Consider the following query:
@@ -1099,6 +1099,9 @@ For the first version we aim at supporting the following three datatypes.
 %TBD: discuss how to properly translate axioms involving datatypes to Datalog rules.
 
 \subsection{OWL Datatypes in DLV}
+
+To change
+
 %Within our PoC, we agreed on supporting the following 3 standard OWL data types: xsd:string, xsd:integer, xsd:double. 
 OWL data types will be supported by DLV via ad-hoc built-in functions. In particular, to state that the type of a variable X in a rule r should be either string, or integer or double the following atoms should be respectively used: $\&string(X;)$, $\&int(X;)$ and $\&double(X;)$. 
 
