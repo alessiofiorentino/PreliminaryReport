@@ -1,51 +1,43 @@
 \documentclass[oneside]{book}
 
 \usepackage[utf8]{inputenc}
-\usepackage{graphicx}
-\usepackage{subfig}
 \usepackage{color}
-\usepackage{soul}
-\usepackage{xspace}
-\usepackage{multirow}
-\usepackage{alltt}
-\usepackage{url}
-\usepackage{amssymb}
-\usepackage{amsthm}
 \usepackage[english]{babel}
-\usepackage[T1]{fontenc}%da non usare nella versione camera-ready
-\usepackage{multirow}
-\usepackage{amsmath}% ci serve per la H piccola in datalog^E,H
-\usepackage{arydshln}
-\usepackage{booktabs}
-\usepackage{graphicx}
 \usepackage[ruled,vlined,noend]{algorithm2e}
-\usepackage{caption}
-\usepackage{cancel}
-\usepackage[dvipsnames]{xcolor}
-
-\DeclareMathAlphabet{\mathbb}{U}{fplmbb}{bb}{it}
-
-\usepackage[normalem]{ulem}
 \usepackage{amsmath}
+\usepackage[normalem]{ulem}
 \newcommand{\stkout}[1]{\ifmmode\text{\sout{\ensuremath{#1}}}\else\sout{#1}\fi}
-
 \usepackage[]{hyperref}
-
-
-%\makeatletter\@addtoreset{chapter}{part}\makeatother%
 
 \usepackage[top=1in, bottom=1.25in, left=1.25in, right=1.25in]{geometry}
 
-% \makeatletter
-% \@addtoreset{chapter}{part}
-% \makeatother
+%%%%%%%%%%%%%%%CRISTINA%%%%%%%%%%%%%%%%%%%
+\newcommand{\el}{$\mathcal{EL}$\xspace}
+\newcommand{\elho}{$\mathcal{ELHO}^r_\bot$\xspace}
+\newcommand{\shiq}{$\mathcal{SHIQ}$\xspace}
+\newcommand{\hshiq}{Horn-\shiq\xspace}
+
+\newcommand{\Onto}{\mathcal{O}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\OKB}{\Onto=\langle\T,\A\rangle}
+
+\newcommand{\dlisa}{\sqsubseteq}
+\newcommand{\dland}{\sqcap}
+\newcommand{\dlor}{\sqcup}
+%%%%%%%%%%%%%%%CRISTINA%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
 
 \begin{document}
 
 \title{\bf Enhancing the DLV system for\\large-scale ontology reasoning \\ \ \\
 \Large \em Preliminary Report
 \\ \ \\ }
-\author{xxxx}
+\author{The authors go here}
 
 %\date{December 2004}
 \maketitle
@@ -176,132 +168,16 @@ BLA BLA BLA…
 \section{Team}
 WP2 has been jointly performed by DLVSystem, SRUK and DeMaCS@UNICAL. In particular, what follows is the list of the involved researchers: Mario Alviano (Professor), Cristina Civili (PostDoc), Marco Manna (Professor), Pierfrancesco Veltri (PostDoc).
 
-\section{Activity title}
-TODO
-\section{Activity title}
-TODO
-\section{Design Magic Sets enhanced for Datalog-rewriting of OWL ontologies. (Datalog to Datalog) - Activity 2.3}
-Magic Sets are an optimization technique for addressing query answering in relational databases and logic-based systems. The technique is translational, from Datalog to Datalog in the context of this project, and therefore implementable as a module (almost) independent from other modules of DLV. The logic program in input is rewritten so that the subsequent bottom-up evaluation only materializes ground atoms that are relevant to answer the query in input. To this aim, new predicates are introduced in the rewritten program. Below is an example involving a recursive definition and asking for the descendants of mario:
-\begin{verbatim}
-  ancestor(X,Y) :- parent(X,Y).
-  ancestor(X,Y) :- parent(X,Z), ancestor(Z,Y).
-  ancestor(mario,X)?
-\end{verbatim}
-
-The Magic Sets rewriting starts with the query seed {\tt m\#ancestor\#bf(mario)}, modifies the rules defining the intentional predicate ancestor, and introduces magic rules for every occurrence of intentional predicates in the modified rules. The rewritten program is the following:
-\begin{verbatim}
-  m#ancestor#bf(mario).
-  ancestor(X,Y) :- m#ancestor#bf(X), parent(X,Y).
-  ancestor(X,Y) :- m#ancestor#bf(X),parent(X,Z),ancestor(Z,Y).
-  m#ancestor#bf(Z) :- m#ancestor#bf(X), parent(X,Z).
-\end{verbatim}
-
-The rewritten program above is optimized for answering the specific query as its bottom-up evaluation only materializes descendants of mario, rather than the full ancestor relation.
-
-There are cases in which several predicates for each predicate in the original program are introduced in the rewritten program. Below is an example, where all predicates are intentional, bindings are passed from left to right, and only rules defining the query predicate q are shown.
-\begin{verbatim}
-  q(X) :- r(a,X), s(X,Y), q(Y).
-\end{verbatim}
-
-The Magic Sets rewriting starts by introducing the magic seed {\tt m\#q\#f}. For each new predicate introduced by the rewriting, modified versions of the rules in input are added:
-\begin{verbatim}
-  q(X) :- m#q#f, r(a,X), s(X,Y), q(X).
-\end{verbatim}
-For each occurrence of an intentional predicate in a modified rule, a magic rule is added, possibly generating new predicates:
-\begin{verbatim}
-  m#r#bf(a) :- m#q#f.
-  m#s#bf(X) :- m#q#f, r(a,X).
-  m#q#b(Y) :- m#q#f, r(a,X), s(X,Y).
-\end{verbatim}
-The process is repeated, and the following rules are added:
-\begin{verbatim}
-  q(X) :- m#q#b(X), r(a,X), s(X,Y), q(X).
-  m#r#bb(a,X) :- m#q#b(X).
-  m#s#bf(X) :- m#q#b(X), r(a,X).
-  m#q#b(Y) :- m#q#b(X), r(a,X), s(X,Y).
-\end{verbatim}
-At this point the rewriting reaches a fixpoint and terminates. Hence, the rewritten program contains the following rules (recall that the example is focused on the rules defining q, while the rules defining other intentional predicates have been omitted):
-\begin{verbatim}
-  m#q#f.
-  q(X) :- m#q#f, r(a,X), s(X,Y), q(X).
-  m#r#bf(a) :- m#q#f.
-  m#s#bf(X) :- m#q#f, r(a,X).
-  m#q#b(Y) :- m#q#f, r(a,X), s(X,Y).
-  q(X) :- m#q#b(X), r(a,X), s(X,Y), q(X).
-  m#r#bb(a,X) :- m#q#b(X).
-  m#s#bf(X) :- m#q#b(X), r(a,X).
-  m#q#b(Y) :- m#q#b(X), r(a,X), s(X,Y).
-\end{verbatim}
-Note that similar rules are introduced for predicates originating from the same source. Hence, a drawback of Magic Sets is the possible introduction of redundant rules and predicates.
-
-Another possible source of inefficiency is the presence or the introduction of subsumed rules, that is, rules whose ground instances are included or less general than those associated with another rule in the program. Below is an example.
-\begin{verbatim}
-  q(X) :- p(X).
-  q(X) :- p(X), t(X).
-  q(a) :- p(a).
-\end{verbatim}
-We can observe that the first rules subsumes the other rules: ground instances of the second rule are less general than those of the first rule; the only ground instance of the third rule is among the the ground instances of the first rule.
-
-\chapter{Results}
-[...]
-
-Concerning Activity 2.3, our goal is to further optimize the Magic Sets technique by introducing postprocessing modules that identify redundant rules and predicates. Specifically, redundant rules are identified by a module that checks for subsumption, that is, rules whose ground instances are included or less general than those associated with another rule in the program are removed; the number of pairs of rules to be checked is significantly reduced by means of hashing techniques. Below is the result of the application of such a module to the example given in Section 2.3. 
-\[
-\begin{array}{l}
-{\tt q(X) :- p(X).}\\
-\mathtt{\stkout{q(X) :- p(X), t(X).}}\\
-\mathtt{\stkout{ q(a) :- p(a).}}\\
-\end{array}
-\]
+\section{Horn-SHIQ Query Rewriting (Activity 2.1)}
+In this section we show how to reduce query answering over \hshiq ontologies
+to query answering over Datalog, independently from the ABox.
+%
+More formally, from a \hshiq TBox $\T$ and a conjunctive
+query $q$, we construct a Datalog program $cr(\T)$ and a union of conjunctive queries $Q_{\T}$ such that, for each ABox $\A$, $\mathit{ans}(q,\A,\T) =  
+\mathit{ans}(Q_{\T},\A \cup cr(\T))$. Note also that $cr(\T)$ is independent from $q$.
 
 
-Intuitively, given two rules $r_1$, $r_2$, subsumption $r_1 \sqsubseteq r_2$ is checked by means of a backtracking procedure that searches for a substitution of the variables of r1 such that the head of $r_1$ matches the head of $r_2$, and the body of $r_1$ is a subset of the body of $r_2$. If such a substitution is found, rule  $r_2$ is removed. Checking all pairs is too expensive, and therefore each rule is associated with an hash value, currently of size 64 bits, computed as follows:
-\begin{itemize}
-\item <OR of IDs of head predicates>, 8 bits;
-\item <OR of IDs of head constants>, 8 bits;
-\item <OR of IDs of predicates in positive body>, 16 bits;
-\item <OR of IDs of constants in positive body>, 16 bits;
-\item <OR of IDs of predicates in negative body>, 8 bits;
-\item <OR of IDs of constants in negative body>, 8 bits.
-\end{itemize}
-Subsumption $r_1 \sqsubseteq r_2$ is checked only if the following bit-a-bit equation is satisfied:
-$$hash(r_1) \ \& \ hash(r_2) == hash(r_1)$$
-In the example above, the third rule cannot subsume the other rules because of the constant a, and the second rule cannot subsume the other rules because of the predicate t; depending on the IDs associated with predicates and constants, the hashing technique can detect this fact and avoid the backtracking searches.
-
-The module that identifies redundant predicates, instead, takes into account the different bindings associated with predicates originating from the same source, and eliminates the rules associated with the more bounded predicates. In the example given in Section 2.3, predicate {\tt m\#q\#b} is more bounded than predicate {\tt m\#q\#f}, and therefore the rules associated with {\tt m\#q\#b} are removed. Similarly, rules associated with {\tt m\#r\#bb} and {\tt m\#s\#bf} are removed. Hence, the rewritten program, focused on the rules defining q, is the following:
-\[
-\begin{array}{l}
-	{\tt m\#q\#f.}\\
-	{\tt q(X) :- m\#q\#f, r(a,X), s(X,Y), q(X).}\\
-	{\tt m\#r\#bf(a) :- m\#q\#f.}\\
-	{\tt m\#s\#bf(X) :- m\#q\#f, r(a,X).}\\
-	\mathtt{\stkout{m\#q\#b(Y) :- m\#q\#f, r(a,X), s(X,Y).}}\\
-	\mathtt{\stkout{q(X) :- m\#q\#b(X), r(a,X), s(X,Y), q(X).}}\\
-	\mathtt{\stkout{m\#r\#bb(a,X) :- m\#q\#b(X).}}\\
-	\mathtt{\stkout{m\#s\#bf(X) :- m\#q\#b(X), r(a,X).}}\\
-	\mathtt{\stkout{m\#q\#b(Y) :- m\#q\#b(X), r(a,X), s(X,Y).}}\\
-\end{array}
-\]
-[...]
-
-
-*************************** Notes // Cristina
-\newcommand{\el}{$\mathcal{EL}$\xspace}
-\newcommand{\elho}{$\mathcal{ELHO}^r_\bot$\xspace}
-\newcommand{\shiq}{$\mathcal{SHIQ}$\xspace}
-\newcommand{\hshiq}{Horn-\shiq\xspace}
-	
-\newcommand{\Onto}{\mathcal{O}}
-\newcommand{\T}{\mathcal{T}}
-\newcommand{\A}{\mathcal{A}}
-\newcommand{\OKB}{\Onto=\langle\T,\A\rangle}
-
-\newcommand{\dlisa}{\sqsubseteq}
-\newcommand{\dland}{\sqcap}
-\newcommand{\dlor}{\sqcup}
-\section{Theoretical Background}
-
-\subsection{\hshiq Description Logic}
+\subsection{Basics}
 
 In \shiq, concepts have the form:
 
@@ -596,7 +472,7 @@ Moreover, the axiom $\exists R.C_2 \dlisa C_1$ will be transformed into $C_2 \dl
 
 \subsubsection{Step 2: Eliminate Transitive Roles}
 
-	$\T^*$ is obtained from $\T$ by:
+$\T^*$ is obtained from $\T$ by:
 
 \begin{itemize}
 	\item adding for every $A \dlisa \forall s.B \in \T$ and every transitive role $r$ with $r \dlisa^*_\T s$, the axioms:
@@ -682,7 +558,7 @@ B^R & \dlisa & B
 
 \subsubsection{Step 3: Saturate}
 
-	$\Xi(\T)$ is the TBox obtained from $\T$ by exhaustively applying the following inference
+$\Xi(\T)$ is the TBox obtained from $\T$ by exhaustively applying the following inference
 rules.
 \[
 \begin{array}{ll}
@@ -695,9 +571,9 @@ R_\bot: & \frac{M \dlisa \exists S.(N \dland \bot)}{M \dlisa \bot} \\ 	%
 \\
 R_\forall: & \frac{M \dlisa \exists (S \dland r).N  \;\;\;\; A \dlisa \forall r.B}{M \dland A \dlisa \exists (S \dland r).(N \dland B)}  \\	
 \\
- R^-_\forall: & \frac{M \dlisa \exists (S \dland r^-).(N\dland A)  \;\;\;\; A \dlisa \forall r.B}{M \dlisa B} \\
+R^-_\forall: & \frac{M \dlisa \exists (S \dland r^-).(N\dland A)  \;\;\;\; A \dlisa \forall r.B}{M \dlisa B} \\
 \\
- R_\leq: & \frac{M \dlisa \exists (S \dland r).(N \dland B)  \;\;\;\; A \dlisa \leq 1r.B \;\;\;\; M' \dlisa \exists(S' \dland r).(N' \dland B)}{M \dland M' \dland A \dlisa \exists(S \dland S' \dland r).(N \dland N')} \\
+R_\leq: & \frac{M \dlisa \exists (S \dland r).(N \dland B)  \;\;\;\; A \dlisa \leq 1r.B \;\;\;\; M' \dlisa \exists(S' \dland r).(N' \dland B)}{M \dland M' \dland A \dlisa \exists(S \dland S' \dland r).(N \dland N')} \\
 \\
 R^-_\leq: & \frac{M \dlisa \exists (S \dland r^-).(N_1 \dland N_2 \dland A)  \;\;\;\; A \dlisa \leq 1r.B \;\;\;\; N_1 \dland A \dlisa \exists(S' \dland r).(N' \dland B \dland C)}{M \dland B \dlisa C \;\;\;\; M \dland B \dlisa \exists(S \dland S'^- \dland r^-).(N_1 \dland N_2 \dland A)}  \\
 %
@@ -842,7 +718,7 @@ q(x) & \leftarrow & Capital^l(x) \\
 
 \subsubsection{Step 5: Completion Rules}
 
-	Given $\T$, $cr(\T )$ is the following Datalog program.
+Given $\T$, $cr(\T )$ is the following Datalog program.
 
 \begin{itemize}
 	
@@ -863,19 +739,19 @@ q(x) & \leftarrow & Capital^l(x) \\
 	\ForEach{CI: $A \dlisa \forall r.B \in \T$}{
 		$P = P \cup \{B(y) \leftarrow A(x), r(x,y)\}$\;
 	}
-
+	
 	\ForEach{CI: $A_1 \dland \ldots \dland A_n \dlisa B \in \T$}{
 		$P = P \cup \{B(x) \leftarrow A_1(x),\ldots,A_n(x) \}$\;
 	}
-
+	
 	\ForEach{CI: $r_1 \dland \ldots \dland r_n \dlisa r \in \T$}{
 		$P = P \cup \{ r(x,y) \leftarrow r_1(x,y),\ldots,r_n(x,y) \}$\;
 	}
-
+	
 	\ForEach{CI: $A \dlisa \leq 1 r.B \in \T$}{
 		$P = P \cup \{ \bot(x) \leftarrow A(x),r(x,y_1),r(x,y_2),B(y_1),B(y_2),y_1 \neq y_2 \}$\;
 	}
-
+	
 	\ForEach{CI: $A_1 \dland \ldots \dland A_n \dlisa \exists (r_1 \dland \ldots \dland r_m).B_1 \dland \ldots \dland B_k \in \T$}{
 		\If{$\exists$ CI:  $A \dlisa \leq 1 r.B \in \T$, $i,j$ s.t. $r=r_i$ and $B=B_j$ }{
 			\ForEach{$B_l \in  \{B_1, \ldots, B_k \}$}{
@@ -886,7 +762,7 @@ q(x) & \leftarrow & Capital^l(x) \\
 			}	
 		}	
 	}
-return $P$\;
+	return $P$\;
 	\caption{$CompletionRules(\T)$}
 \end{algorithm}
 
@@ -904,7 +780,10 @@ DesirableArea(x) & \leftarrow & CommutingArea(x) \\
 \end{array}
 \]
 
-\section{Architecture of the Query Rewriting Module}
+\section{Implementation of Horn-SHIQ Rewriting (Activity 2.2)}
+
+
+\subsection{Architecture of the Query Rewriting Module}
 
 The Query Rewriting algorithm developed by SRUK is based on 6 subroutines performing the steps described earlier in this document.
 
@@ -967,33 +846,12 @@ The two parts should at least agree on:
 \subsection{Data Structures}
 
 \subsubsection{TBox}
-Ontology classes:
 \begin{itemize}
-	\item \textit{TBox}
-	\item \textit{ConceptInclusion}
-	\item \textit{RoleInclusion}
-	\item \textit{TransitivityAssertion}
-\end{itemize}
+\item Ontology classes: \textit{TBox},  \textit{ConceptInclusion},  \textit{RoleInclusion},  \textit{TransitivityAssertion}
 
-Concept classes:
-\begin{itemize}	
-	\item \textit{Concept}
-	\item \textit{AtomicConcept}
-	\item \textit{NegatedConcept}
-	\item \textit{AndConcept}
-	\item \textit{OrConcept}
-	\item \textit{ExistentialConcept}
-	\item \textit{UniversalConcept}
-	\item \textit{MaxCardinalityConcept}
-	\item \textit{MinCardinalityConcept}
-	\item \textit{TopConcept}
-	\item \textit{BottomConcept}
-\end{itemize}
+\item Concept classes: \textit{Concept},  \textit{AtomicConcept},  \textit{NegatedConcept},  \textit{AndConcept},  \textit{OrConcept},  \textit{ExistentialConcept},  \textit{UniversalConcept},  \textit{MaxCardinalityConcept},  \textit{MinCardinalityConcept},  \textit{TopConcept},  \textit{BottomConcept}
 
-Role classes:
-\begin{itemize}
-	\item \textit{Role}
-	\item \textit{AtomicRole}
+\item Role classes: \textit{Role},  \textit{AtomicRole}
 \end{itemize}
 
 
@@ -1003,31 +861,19 @@ Role classes:
 
 \subsubsection{Query}
 \begin{itemize}
-	\item \textit{UnionConjunctiveQuery}
-	\item \textit{ConjunctiveQuery}
-	\item \textit{Head}
-	\item \textit{Body}
-	\item \textit{Atom}
-	\item \textit{Term}
-	\item \textit{Variable}
-	\item \textit{Constant}
+	
+	\item  \textit{UnionConjunctiveQuery},  \textit{ConjunctiveQuery},  \textit{Head},  \textit{Body},  \textit{Atom},  \textit{Term},  \textit{Variable},  \textit{Constant}
 \end{itemize}
 
 
 \subsubsection{Datalog Program}
 \begin{itemize}
-	\item \textit{Program}
-	\item \textit{Rule}
-	\item \textit{Head}
-	\item \textit{Body}
-	\item \textit{Atom}
-	\item \textit{Term}
-	\item \textit{Variable}
-	\item \textit{Constant}
+	
+	\item  \textit{Program},  \textit{Rule},  \textit{Head},  \textit{Body},  \textit{Atom},  \textit{Term},  \textit{Variable},  \textit{Constant}
 \end{itemize}
 
 
-\section{Handling Datatypes}
+\subsection{Handling Datatypes}
 
 For the first version we aim at supporting the following three datatypes.
 
@@ -1037,9 +883,9 @@ For the first version we aim at supporting the following three datatypes.
 	\item \textit{xsd:string}
 \end{itemize}
 
-%TBD: discuss how to properly translate axioms involving datatypes to Datalog rules.
 
-[*** Shared by DLV Team *** ]
+
+%TBD: discuss how to properly translate axioms involving datatypes to Datalog rules.
 
 \subsection{OWL Datatypes in DLV}
 %Within our PoC, we agreed on supporting the following 3 standard OWL data types: xsd:string, xsd:integer, xsd:double. 
@@ -1080,7 +926,7 @@ In this case, the built-in atom $\&string(Y;)$ can be avoided because address ma
 
 Other explicit restrictions involving OWL datatypes can be represented in DLV by using the syntax introduced above.
 
-\section{IRI in DLV}
+\subsection{IRI in DLV}
 
 Ontologies and their elements are identified using Internationalized Resource Identifiers (IRIs). IRIs can be written as full IRIs by enclosing them in a pair of "$<$" and "$>$" characters. Alternatively, IRIs can be abbreviated as in SPARQL. 
 
@@ -1112,7 +958,121 @@ is represented as the following DLV fact:
 
 
 
-*************************** End notes // Cristina
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Design Magic Sets enhanced for Datalog-rewriting of OWL ontologies (Activity 2.3)}
+Magic Sets are an optimization technique for addressing query answering in relational databases and logic-based systems. The technique is translational, from Datalog to Datalog in the context of this project, and therefore implementable as a module (almost) independent from other modules of DLV. The logic program in input is rewritten so that the subsequent bottom-up evaluation only materializes ground atoms that are relevant to answer the query in input. To this aim, new predicates are introduced in the rewritten program. Below is an example involving a recursive definition and asking for the descendants of mario:
+\begin{verbatim}
+  ancestor(X,Y) :- parent(X,Y).
+  ancestor(X,Y) :- parent(X,Z), ancestor(Z,Y).
+  ancestor(mario,X)?
+\end{verbatim}
+
+The Magic Sets rewriting starts with the query seed {\tt m\#ancestor\#bf(mario)}, modifies the rules defining the intentional predicate ancestor, and introduces magic rules for every occurrence of intentional predicates in the modified rules. The rewritten program is the following:
+\begin{verbatim}
+  m#ancestor#bf(mario).
+  ancestor(X,Y) :- m#ancestor#bf(X), parent(X,Y).
+  ancestor(X,Y) :- m#ancestor#bf(X),parent(X,Z),ancestor(Z,Y).
+  m#ancestor#bf(Z) :- m#ancestor#bf(X), parent(X,Z).
+\end{verbatim}
+
+The rewritten program above is optimized for answering the specific query as its bottom-up evaluation only materializes descendants of mario, rather than the full ancestor relation.
+
+There are cases in which several predicates for each predicate in the original program are introduced in the rewritten program. Below is an example, where all predicates are intentional, bindings are passed from left to right, and only rules defining the query predicate q are shown.
+\begin{verbatim}
+  q(X) :- r(a,X), s(X,Y), q(Y).
+\end{verbatim}
+
+The Magic Sets rewriting starts by introducing the magic seed {\tt m\#q\#f}. For each new predicate introduced by the rewriting, modified versions of the rules in input are added:
+\begin{verbatim}
+  q(X) :- m#q#f, r(a,X), s(X,Y), q(X).
+\end{verbatim}
+For each occurrence of an intentional predicate in a modified rule, a magic rule is added, possibly generating new predicates:
+\begin{verbatim}
+  m#r#bf(a) :- m#q#f.
+  m#s#bf(X) :- m#q#f, r(a,X).
+  m#q#b(Y) :- m#q#f, r(a,X), s(X,Y).
+\end{verbatim}
+The process is repeated, and the following rules are added:
+\begin{verbatim}
+  q(X) :- m#q#b(X), r(a,X), s(X,Y), q(X).
+  m#r#bb(a,X) :- m#q#b(X).
+  m#s#bf(X) :- m#q#b(X), r(a,X).
+  m#q#b(Y) :- m#q#b(X), r(a,X), s(X,Y).
+\end{verbatim}
+At this point the rewriting reaches a fixpoint and terminates. Hence, the rewritten program contains the following rules (recall that the example is focused on the rules defining q, while the rules defining other intentional predicates have been omitted):
+\begin{verbatim}
+  m#q#f.
+  q(X) :- m#q#f, r(a,X), s(X,Y), q(X).
+  m#r#bf(a) :- m#q#f.
+  m#s#bf(X) :- m#q#f, r(a,X).
+  m#q#b(Y) :- m#q#f, r(a,X), s(X,Y).
+  q(X) :- m#q#b(X), r(a,X), s(X,Y), q(X).
+  m#r#bb(a,X) :- m#q#b(X).
+  m#s#bf(X) :- m#q#b(X), r(a,X).
+  m#q#b(Y) :- m#q#b(X), r(a,X), s(X,Y).
+\end{verbatim}
+Note that similar rules are introduced for predicates originating from the same source. Hence, a drawback of Magic Sets is the possible introduction of redundant rules and predicates.
+
+Another possible source of inefficiency is the presence or the introduction of subsumed rules, that is, rules whose ground instances are included or less general than those associated with another rule in the program. Below is an example.
+\begin{verbatim}
+  q(X) :- p(X).
+  q(X) :- p(X), t(X).
+  q(a) :- p(a).
+\end{verbatim}
+We can observe that the first rules subsumes the other rules: ground instances of the second rule are less general than those of the first rule; the only ground instance of the third rule is among the the ground instances of the first rule.
+
+
+\section{Implementation of Magic Sets enhanced for Datalog-rewriting of OWL ontologies (Activity 2.4)}
+
+TODO
+
+
+\chapter{Results}
+[...]
+
+Concerning Activity 2.3, our goal is to further optimize the Magic Sets technique by introducing postprocessing modules that identify redundant rules and predicates. Specifically, redundant rules are identified by a module that checks for subsumption, that is, rules whose ground instances are included or less general than those associated with another rule in the program are removed; the number of pairs of rules to be checked is significantly reduced by means of hashing techniques. Below is the result of the application of such a module to the example given in Section 2.3. 
+\[
+\begin{array}{l}
+{\tt q(X) :- p(X).}\\
+\mathtt{\stkout{q(X) :- p(X), t(X).}}\\
+\mathtt{\stkout{ q(a) :- p(a).}}\\
+\end{array}
+\]
+
+
+Intuitively, given two rules $r_1$, $r_2$, subsumption $r_1 \sqsubseteq r_2$ is checked by means of a backtracking procedure that searches for a substitution of the variables of r1 such that the head of $r_1$ matches the head of $r_2$, and the body of $r_1$ is a subset of the body of $r_2$. If such a substitution is found, rule  $r_2$ is removed. Checking all pairs is too expensive, and therefore each rule is associated with an hash value, currently of size 64 bits, computed as follows:
+\begin{itemize}
+\item <OR of IDs of head predicates>, 8 bits;
+\item <OR of IDs of head constants>, 8 bits;
+\item <OR of IDs of predicates in positive body>, 16 bits;
+\item <OR of IDs of constants in positive body>, 16 bits;
+\item <OR of IDs of predicates in negative body>, 8 bits;
+\item <OR of IDs of constants in negative body>, 8 bits.
+\end{itemize}
+Subsumption $r_1 \sqsubseteq r_2$ is checked only if the following bit-a-bit equation is satisfied:
+$$hash(r_1) \ \& \ hash(r_2) == hash(r_1)$$
+In the example above, the third rule cannot subsume the other rules because of the constant a, and the second rule cannot subsume the other rules because of the predicate t; depending on the IDs associated with predicates and constants, the hashing technique can detect this fact and avoid the backtracking searches.
+
+The module that identifies redundant predicates, instead, takes into account the different bindings associated with predicates originating from the same source, and eliminates the rules associated with the more bounded predicates. In the example given in Section 2.3, predicate {\tt m\#q\#b} is more bounded than predicate {\tt m\#q\#f}, and therefore the rules associated with {\tt m\#q\#b} are removed. Similarly, rules associated with {\tt m\#r\#bb} and {\tt m\#s\#bf} are removed. Hence, the rewritten program, focused on the rules defining q, is the following:
+\[
+\begin{array}{l}
+	{\tt m\#q\#f.}\\
+	{\tt q(X) :- m\#q\#f, r(a,X), s(X,Y), q(X).}\\
+	{\tt m\#r\#bf(a) :- m\#q\#f.}\\
+	{\tt m\#s\#bf(X) :- m\#q\#f, r(a,X).}\\
+	\mathtt{\stkout{m\#q\#b(Y) :- m\#q\#f, r(a,X), s(X,Y).}}\\
+	\mathtt{\stkout{q(X) :- m\#q\#b(X), r(a,X), s(X,Y), q(X).}}\\
+	\mathtt{\stkout{m\#r\#bb(a,X) :- m\#q\#b(X).}}\\
+	\mathtt{\stkout{m\#s\#bf(X) :- m\#q\#b(X), r(a,X).}}\\
+	\mathtt{\stkout{m\#q\#b(Y) :- m\#q\#b(X), r(a,X), s(X,Y).}}\\
+\end{array}
+\]
+[...]
+
+
 
 
 \chapter{Open research issues}
