@@ -25,6 +25,14 @@
 
 \usepackage[]{hyperref}
 
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{enumitem}
+
+
+\usepackage[colorinlistoftodos,textwidth=160pt]{todonotes}
+\presetkeys{todonotes}{color=blue!20, bordercolor=blue!80}{}
+\newcommand{\ste}[1]{\todo[color=green!40, bordercolor=green!80, author=Stefano]{#1}{}}
 
 %\makeatletter\@addtoreset{chapter}{part}\makeatother%
 
@@ -80,14 +88,14 @@ The summary goes here...
 \chapter{Scenario and problem description}
 
 DLV natively supports the ASP formalism that requires data to be represented as a set of relational facts. One of the goals of this project is to extend the system in order to deal with OWL TBoxes in RDF/XML format, RDF ABoxes in Turtle format and Conjunctive Queries in SPARQL. In particular, a ``rewriting-based'' approach for handling OWL ontologies and SPARQL queries will be designed and developed within WP2; whereas, an extension of the system for loading Turtle ABoxes has been developed within WP1. 
-BLA BLA BLA…
+BLA BLA BLA…\ste{Fix introduction}
 
 \section{Team}
 WP1 has been fully developed by DLVSystem. In particular, what follows is the list of the involved researchers: Stefano Germano (PostDoc), Pierfrancesco Veltri (PostDoc), Jessica Zangari (PostDoc).
 
 
 
-\section{The Turtle standard - Terse RDF Triple Language\texorpdfstring{\protect\footnote{From \url{https://www.w3.org/TR/turtle}}}{}}
+\section{The Turtle standard - Terse RDF Triple Language\texorpdfstring{\protect\footnote{From~\url{https://www.w3.org/TR/turtle}}}{}}
 
 We refer to RDF 1.1 Turtle as reported in its latest published version, available at \url{http://www.w3.org/TR/2014/REC-turtle-20140225/}.
 
@@ -143,6 +151,211 @@ ANTLR has several advantages (for instance, plugins for the major programming ID
 
 Since the combination \emph{Flex+Bison} is already used in I-DLV (and therefore we do not have compliance or licensing issues) and since their performance are quite good and (seem to) fit our purpose, \textbf{we decided to use the \emph{Flex} and \emph{Bison} libraries to build the \emph{Turtle parser}}.
 
+\section{Our approach}
+
+\subsection{Turtle grammar\texorpdfstring{\protect\footnote{\url{https://www.w3.org/TR/turtle/\#sec-grammar-grammar}}}{}}
+
+%\begin{array}{llll}
+%	[1] & turtleDoc & ::= & statement* \\
+%	[2] & Statement & ::= & directive | triples '.' \\
+%	[3] & Directive & ::= & prefixID | base | sparqlPrefix | sparqlBase \\
+%	[4] & prefixID & ::= & '@prefix' PNAME\_NS IRIREF '.' \\
+%	[5] & Base & ::= & '@base' IRIREF '.' \\
+%	[5s] & sparqlBase & ::= & "BASE" IRIREF \\
+%	[6s] & sparqlPrefix & ::= & "PREFIX" PNAME\_NS IRIREF \\
+%	[6] & Triples & ::= & subject predicateObjectList | blankNodePropertyList predicateObjectList? \\
+%	[7] & predicateObjectList & ::= & verb objectList (';' (verb objectList)?)* \\
+%	[8] & objectList & ::= & object (',' object)* \\
+%	[9] & Verb & ::= & predicate | 'a' \\
+%	[10] & Subject & ::= & iri | BlankNode | collection \\
+%	[11] & Predicate & ::= & iri \\
+%	[12] & Object & ::= & iri | BlankNode | collection | blankNodePropertyList | literal \\
+%	[13] & Literal & ::= & RDFLiteral | NumericLiteral | BooleanLiteral \\
+%	[14] & blankNodePropertyList & ::= & '[' predicateObjectList ']' \\
+%	[15] & collection & ::= & '(' object* ')' \\
+%	[16] & NumericLiteral & ::= & INTEGER | DECIMAL | DOUBLE \\
+%	[128s] & RDFLiteral & ::= & String (LANGTAG | '^^' iri)? \\
+%	[133s] & BooleanLiteral & ::= & 'true' | 'false'\\
+%	[17] & String & ::= & STRING\_LITERAL\_QUOTE | STRING\_LITERAL\_SINGLE\_QUOTE | STRING\_LITERAL\_LONG\_SINGLE\_QUOTE | STRING\_LITERAL\_LONG\_QUOTE \\
+%	[135s] & Iri & ::= & IRIREF | PrefixedName \\
+%	[136s] & PrefixedName & ::= & PNAME\_LN | PNAME\_NS \\
+%	[137s] & BlankNode & ::= & BLANK\_NODE\_LABEL | ANON \\
+%	Productions for terminals\\
+%	[18] & IRIREF & ::= & '<' ([^#x00-#x20<>"{}|\^`\\] | UCHAR)* '>' /* #x00=NULL #01-#x1F=control codes #x20=space */\\
+%	[139s] & PNAME\_NS & ::= & PN\_PREFIX? ':' \\
+%	[140s] & PNAME\_LN & ::= & PNAME\_NS PN\_LOCAL \\
+%	[141s] & BLANK\_NODE\_LABEL & ::= & '\_:' (PN\_CHARS\_U | [0-9]) ((PN\_CHARS | '.')* PN\_CHARS)? \\
+%	[144s] & LANGTAG & ::= & '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* \\
+%	[19] & INTEGER & ::= & [+-]? [0-9]+ \\
+%	[20] & DECIMAL & ::= & [+-]? [0-9]* '.' [0-9]+ \\
+%	[21] & DOUBLE & ::= & [+-]? ([0-9]+ '.' [0-9]* EXPONENT | '.' [0-9]+ EXPONENT | [0-9]+ EXPONENT) \\
+%	[154s] & EXPONENT & ::= & [eE] [+-]? [0-9]+ \\
+%	[22] & STRING\_LITERAL\_QUOTE & ::= & '"' ([\^#x22#x5C#xA#xD] | ECHAR | UCHAR)* '"' /* #x22=" #x5C=\ #xA=new line #xD=carriage return */ \\
+%	[23] & STRING\_LITERAL\_SINGLE\_QUOTE & ::= & "'" ([^#x27#x5C#xA#xD] | ECHAR | UCHAR)* "'" /* #x27=' #x5C=\ #xA=new line #xD=carriage return */ \\
+%	[24] & STRING\_LITERAL\_LONG\_SINGLE\_QUOTE & ::= & "'''" (("'" | "''")? ([^'\] | ECHAR | UCHAR))* "'''" \\
+%	[25] & STRING\_LITERAL\_LONG\_QUOTE & ::= & '"""' (('"' | '""')? ([^"\] | ECHAR | UCHAR))* '"""' \\
+%	[26] & UCHAR & ::= & '\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX \\
+%	[159s] & ECHAR & ::= & '\' [tbnrf"'\] \\
+%	[161s] & WS & ::= & #x20 | #x9 | #xD | #xA /* #x20=space #x9=character tabulation #xD=carriage return #xA=new line */ \\
+%	[162s] & ANON & ::= & '[' WS* ']' \\
+%	[163s] & PN\_CHARS\_BASE & ::= & [A-Z] | [a-z] | [#x00C0-#x00D6] | [#x00D8-#x00F6] | [#x00F8-#x02FF] | [#x0370-#x037D] | [#x037F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF] \\
+%	[164s] & PN\_CHARS\_U & ::= & PN\_CHARS\_BASE | '\_' \\
+%	[166s] & PN\_CHARS & ::= & PN\_CHARS\_U | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] \\
+%	[167s] & PN\_PREFIX & ::= & PN\_CHARS\_BASE ((PN\_CHARS | '.')* PN\_CHARS)? \\
+%	[168s] & PN\_LOCAL & ::= & (PN\_CHARS\_U | ':' | [0-9] | PLX) ((PN\_CHARS | '.' | ':' | PLX)* (PN\_CHARS | ':' | PLX))? \\
+%	[169s] & PLX & ::= & PERCENT | PN\_LOCAL\_ESC \\
+%	[170s] & PERCENT & ::= & '%' HEX HEX \\
+%	[171s] & HEX & ::= & [0-9] | [A-F] | [a-f] \\
+%	[172s] & PN\_LOCAL\_ESC & ::= & '\' ('\_' | '~' | '.' | '-' | '!' | '$' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '/' | '?' | '#' | '@' | '%') \\
+%end{array}
+
+%\begin{lstlisting}[breaklines=true]
+%[1]	turtleDoc	::=	statement*
+%
+%[2]	Statement	::=	directive | triples '.'
+%
+%[3]	Directive	::=	prefixID | base | sparqlPrefix | sparqlBase
+%
+%[4]	prefixID	::=	'@prefix' PNAME_NS IRIREF '.'
+%
+%[5]	Base	::=	'@base' IRIREF '.'
+%
+%[5s]	sparqlBase	::=	"BASE" IRIREF
+%
+%[6s]	sparqlPrefix	::=	"PREFIX" PNAME_NS IRIREF
+%
+%[6]	Triples	::=	subject predicateObjectList | blankNodePropertyList predicateObjectList?
+%
+%[7]	predicateObjectList	::=	verb objectList (';' (verb objectList)?)*
+%
+%[8]	objectList	::=	object (',' object)*
+%
+%[9]	Verb	::=	predicate | 'a'
+%
+%[10]	Subject	::=	iri | BlankNode | collection
+%
+%[11]	Predicate	::=	iri
+%
+%[12]	Object	::=	iri | BlankNode | collection | blankNodePropertyList | literal
+%
+%[13]	Literal	::=	RDFLiteral | NumericLiteral | BooleanLiteral
+%
+%[14]	blankNodePropertyList	::=	'[' predicateObjectList ']'
+%
+%[15]	collection	::=	'(' object* ')'
+%
+%[16]	NumericLiteral	::=	INTEGER | DECIMAL | DOUBLE
+%
+%[128s]	RDFLiteral	::=	String (LANGTAG | '^^' iri)?
+%
+%[133s]	BooleanLiteral	::=	'true' | 'false'
+%[17]	String	::=	STRING_LITERAL_QUOTE | STRING_LITERAL_SINGLE_QUOTE | STRING_LITERAL_LONG_SINGLE_QUOTE | STRING_LITERAL_LONG_QUOTE
+%
+%[135s]	Iri	::=	IRIREF | PrefixedName
+%
+%[136s]	PrefixedName	::=	PNAME_LN | PNAME_NS
+%
+%[137s]	BlankNode	::=	BLANK_NODE_LABEL | ANON
+%
+%Productions for terminals
+%[18]	IRIREF	::=	'<' ([^#x00-#x20<>"{}|^`\] | UCHAR)* '>' /* #x00=NULL #01-#x1F=control codes #x20=space */
+%[139s]	PNAME_NS	::=	PN_PREFIX? ':'
+%
+%[140s]	PNAME_LN	::=	PNAME_NS PN_LOCAL
+%
+%[141s]	BLANK_NODE_LABEL	::=	'_:' (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)?
+%
+%[144s]	LANGTAG	::=	'@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)*
+%[19]	INTEGER	::=	[+-]? [0-9]+
+%[20]	DECIMAL	::=	[+-]? [0-9]* '.' [0-9]+
+%[21]	DOUBLE	::=	[+-]? ([0-9]+ '.' [0-9]* EXPONENT | '.' [0-9]+ EXPONENT | [0-9]+ EXPONENT)
+%
+%[154s]	EXPONENT	::=	[eE] [+-]? [0-9]+
+%[22]	STRING_LITERAL_QUOTE	::=	'"' ([^#x22#x5C#xA#xD] | ECHAR | UCHAR)* '"' /* #x22=" #x5C=\ #xA=new line #xD=carriage return */
+%[23]	STRING_LITERAL_SINGLE_QUOTE	::=	"'" ([^#x27#x5C#xA#xD] | ECHAR | UCHAR)* "'" /* #x27=' #x5C=\ #xA=new line #xD=carriage return */
+%[24]	STRING_LITERAL_LONG_SINGLE_QUOTE	::=	"'''" (("'" | "''")? ([^'\] | ECHAR | UCHAR))* "'''"
+%
+%[25]	STRING_LITERAL_LONG_QUOTE	::=	'"""' (('"' | '""')? ([^"\] | ECHAR | UCHAR))* '"""'
+%
+%[26]	UCHAR	::=	'\u' HEX HEX HEX HEX | '\U' HEX HEX HEX HEX HEX HEX HEX HEX
+%
+%[159s]	ECHAR	::=	'\' [tbnrf"'\]
+%[161s]	WS	::=	#x20 | #x9 | #xD | #xA /* #x20=space #x9=character tabulation #xD=carriage return #xA=new line */
+%[162s]	ANON	::=	'[' WS* ']'
+%
+%[163s]	PN_CHARS_BASE	::=	[A-Z] | [a-z] | [#x00C0-#x00D6] | [#x00D8-#x00F6] | [#x00F8-#x02FF] | [#x0370-#x037D] | [#x037F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+%[164s]	PN_CHARS_U	::=	PN_CHARS_BASE | '_'
+%
+%[166s]	PN_CHARS	::=	PN_CHARS_U | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040]
+%[167s]	PN_PREFIX	::=	PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)?
+%
+%[168s]	PN_LOCAL	::=	(PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))?
+%
+%[169s]	PLX	::=	PERCENT | PN_LOCAL_ESC
+%
+%[170s]	PERCENT	::=	'%' HEX HEX
+%
+%[171s]	HEX	::=	[0-9] | [A-F] | [a-f]
+%[172s]	PN_LOCAL_ESC	::=	'\' ('_' | '~' | '.' | '-' | '!' | '$' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '/' | '?' | '#' | '@' | '\%')
+%\end{lstlisting}
+
+\includegraphics[width=\linewidth,height=\textheight,keepaspectratio]{Turtle_Grammar.pdf}
+
+Notes:
+\begin{itemize}
+	\item [] Keywords in single quotes ('\texttt{@base}', '\texttt{@prefix}', '\texttt{a}', '\texttt{true}', '\texttt{false}') are case-sensitive. Keywords in double quotes ("\texttt{BASE}", "\texttt{PREFIX}") are case-insensitive. 
+	\item [] Escape sequences \texttt{UCHAR} and \texttt{ECHAR} are case sensitive. 
+	\item [] When tokenizing the input and choosing grammar rules, the longest match is chosen. 
+	\item [] The Turtle grammar is LL(1) and LALR(1) when the rules with uppercased names are used as terminals. 
+	\item [] The entry point into the grammar is \texttt{turtleDoc}. 
+	\item [] In signed numbers, no white space is allowed between the sign and the number. 
+	\item [] The strings '\texttt{@prefix}' and '\texttt{@base}' match the pattern for \texttt{LANGTAG}, though neither "\texttt{prefix}" nor "\texttt{base}" are \href{http://www.iana.org/assignments/language-subtag-registry}{registered language subtags}. This specification does not define whether a quoted literal followed by either of these tokens (e.g. \texttt{"A"@base}) is in the Turtle language. 
+\end{itemize}
+
+These rules describe the whole Turtle grammar.\\
+Although we needed only the A-Box part, we decided to implement the whole grammar and to trigger only the rules needed for the A-Box part.
+
+Therefore, we used only the rules: \texttt{1}, \texttt{4}, \texttt{5}, \texttt{9}, \texttt{10}, \texttt{11}, \texttt{12}, \texttt{13}, \texttt{16}, \texttt{128s}, \texttt{133s}, \texttt{135s}, and almost all the productions for terminals.
+
+We translated these rules into the languages of Flex and Bison.\\
+The translation was not straightforward for several reasons:
+\begin{itemize}
+	\item Flex does not support whitespaces among the tokens
+	\item Flex does not support Unicode and as problems with Unicode ranges and they are essential in the Turtle format
+	\item Flex does not support single quotes for the strings in the tokens
+	\item Flex does not support different cases for different rules/tokens
+	\item In Flex some characters, even if encoded in strings, needs to be escaped
+	\item Flex has problems with “multi-levels” definitions
+	\item In Flex the order of rules is important and affects the lexical analysis procedure
+	\item Bison does not support single quotes for strings longer than one character (as in the C syntax)
+	\item Bison has problems with strings (encoded in quotes) in the rules
+	\item Bison does not support the Kleene star (\texttt{*}) and Kleene plus (\texttt{+})
+	\item Bison does not support the optional operator (i.e. the question mark \texttt{?})
+\end{itemize}
+
+We employed the parsing procedure described in the Specification\footnote{\url{https://www.w3.org/TR/turtle/\#sec-parsing}}.
+
+The RDF 1.1 Concepts and Abstract Syntax specification defines three types of RDF Term, but we consider only the first 2: IRIs, literals. Literals are composed of a lexical form and an optional language tag or datatype IRI. An extra type, prefix, is used during parsing to map string identifiers to namespace IRIs. Grammar productions change the parser state and emit triples.
+
+Parsing Turtle requires a state of five items:
+\begin{itemize}
+	\item \texttt{IRI baseURI} — When the base production is reached, the second rule argument, \texttt{IRIREF}, is the base URI used for relative IRI resolution. 
+	\item \texttt{Map[prefix -> IRI] namespaces} — The second and third rule arguments (\texttt{PNAME\_NS} and \texttt{IRIREF}) in the prefixID production assign a namespace name (\texttt{IRIREF}) for the prefix (\texttt{PNAME\_NS}). Outside of a \texttt{prefixID} production, any \texttt{PNAME\_NS} is substituted with the namespace. Note that the prefix may be an empty string, per the \texttt{PNAME\_NS} production: \texttt{(PN\_PREFIX)? ":"}. 
+	\item \texttt{RDF\_Term curSubject} — The \texttt{curSubject} is bound to the subject production.
+	\item \texttt{RDF\_Term curPredicate} — The \texttt{curPredicate} is bound to the verb production.\\
+	If token matched was "\texttt{a}", \texttt{curPredicate} is bound to the IRI\\
+	\texttt{http://www.w3.org/1999/02/22-rdf-syntax-ns\#type}.
+\end{itemize}
+
+Productions and lexical tokens to RDF terms or components of RDF terms are mapped as reported in \href{https://www.w3.org/TR/turtle/#sec-parsing-terms}{this section}.
+
+A Turtle document defines an \href{http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph}{RDF graph} composed of set of \href{http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple}{RDF triple}s. The \href{https://www.w3.org/TR/turtle/#grammar-production-subject}{subject} production sets the \texttt{curSubject}.
+The \href{https://www.w3.org/TR/turtle/#grammar-production-verb}{verb} production sets the \texttt{curPredicate}.
+Each \href{https://www.w3.org/TR/turtle/#grammar-production-object}{object} \texttt{N} in the document produces an RDF triple: \texttt{curSubject curPredicate N}.
+
+The approach to translate ABox RDF triples into ASP facts is described in \ste{Fix section reference}
+
+\subsection{Integration of the parser in I-DLV}
 
 
 \section{Activity title}
