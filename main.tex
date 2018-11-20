@@ -85,8 +85,33 @@ BLA BLA BLA…
 \section{Team}
 WP1 has been fully developed by DLVSystem. In particular, what follows is the list of the involved researchers: Stefano Germano (PostDoc), Pierfrancesco Veltri (PostDoc), Jessica Zangari (PostDoc).
 
-\section{Activity title}
-TODO
+
+
+\section{The Turtle standard - Terse RDF Triple Language\texorpdfstring{\protect\footnote{From \url{https://www.w3.org/TR/turtle}}}{}}
+
+We refer to RDF 1.1 Turtle as reported in its latest published version, available at \url{http://www.w3.org/TR/2014/REC-turtle-20140225/}.
+
+The Resource Description Framework (RDF) is a general-purpose language for representing information in the Web.
+We use a textual syntax for RDF called Turtle that allows an RDF graph to be completely written in a compact and natural text form, with abbreviations for common usage patterns and datatypes.
+
+A Turtle document allows writing down an RDF graph in a compact textual form. An RDF graph is made up of triples consisting of a subject, predicate and object.\\
+Comments may be given after a '\#' that is not part of another lexical token and continue to the end of the line.
+
+The simplest triple statement is a sequence of (subject, predicate, object) terms, separated by whitespace and terminated by '.' after each triple.
+
+Often the same subject will be referenced by a number of predicates. The predicateObjectList production matches a series of predicates and objects, separated by ';', following a subject. This expresses a series of RDF Triples with that subject and each predicate and object allocated to one triple. Thus, the ';' symbol is used to repeat the subject of triples that vary only in predicate and object RDF terms.
+As with predicates often objects are repeated with the same subject and predicate. The objectList production matches a series of objects separated by ',' following a predicate. This expresses a series of RDF Triples with the corresponding subject and predicate and each object allocated to one triple. Thus, the ',' symbol is used to repeat the subject and predicate of triples that only differ in the object RDF term.
+
+IRIs may be written as relative or absolute IRIs or prefixed names. Relative and absolute IRIs are enclosed in '<' and '>'.\\
+Relative IRIs are resolved relative to the current base IRI. A new base IRI can be defined using the '@base' or 'BASE' directive.\\
+The token 'a' in the predicate position of a Turtle triple represents the IRI\\
+\verb|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|.\\
+A prefixed name is a prefix label and a local part, separated by a colon ":". A prefixed name is turned into an IRI by concatenating the IRI associated with the prefix and the local part. The '@prefix' or 'PREFIX' directive associates a prefix label with an IRI. Subsequent '@prefix' or 'PREFIX' directives may re-map the same prefix label.
+
+Literals are used to identify values such as strings, numbers, dates.\\
+Quoted Literals have a lexical form followed by a language tag, a datatype IRI, or neither.
+
+
 \section{Activity title}
 TODO
 \chapter{Results}
